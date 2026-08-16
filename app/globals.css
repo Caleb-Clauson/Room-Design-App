@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  @apply h-full w-full bg-[#050505] text-app-text antialiased overflow-hidden;
+}
+
+/* Base Full-Screen Shell */
+.workspace-shell {
+  @apply relative h-screen w-screen overflow-hidden bg-black;
+}
+
+/* Glassmorphism Floating Panels */
+.floating-panel {
+  @apply absolute z-10 flex flex-col rounded-2xl border border-white/10 bg-[#090a0f]/60 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)];
+}
+
+.panel-title {
+  @apply border-b border-white/5 px-4 py-3 text-[11px] font-bold uppercase tracking-widest text-app-textStrong;
+}
+
+/* Premium Buttons */
+.tool-btn {
+  @apply rounded-lg border border-white/5 bg-white/5 px-3 py-2 text-xs font-medium text-app-text transition-all hover:bg-white/10 hover:text-app-textStrong active:scale-95;
+}
+
+.tool-btn-primary {
+  @apply border-app-accent/50 bg-app-accent/20 text-white shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:bg-app-accent/30;
+}
+
+.tool-icon-btn {
+  @apply flex h-9 w-9 items-center justify-center rounded-lg border border-transparent text-app-text transition-all hover:bg-white/10 hover:text-white;
+}
+
+.tool-icon-btn.active {
+  @apply border-app-accent/50 bg-app-accent/20 text-app-accent shadow-[0_0_10px_rgba(59,130,246,0.2)];
+}
+
+/* Lists and Rows */
+.hierarchy-item {
+  @apply flex cursor-pointer items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-xs font-medium text-app-text transition-all hover:bg-white/5 hover:text-white;
+}
+
+.hierarchy-item-active {
+  @apply border-app-accent/30 bg-app-accent/10 text-white;
+}
+
+.inspector-row {
+  @apply flex items-center justify-between border-b border-white/5 py-2.5 text-xs;
+}
+
+/* Catalog Cards */
+.catalog-card {
+  @apply cursor-pointer rounded-xl border border-white/5 bg-white/5 p-3 transition-all hover:-translate-y-1 hover:border-app-accent/50 hover:bg-white/10 hover:shadow-[0_4px_20px_rgba(0,0,0,0.3)];
+}
+
+/* Modal Enhancements */
+.modal-backdrop {
+  @apply fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md;
+}
+
+.modal-panel {
+  @apply w-full max-w-lg rounded-2xl border border-white/10 bg-[#090a0f] p-6 shadow-[0_0_40px_rgba(0,0,0,0.5)];
+}
