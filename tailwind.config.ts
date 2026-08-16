@@ -10,17 +10,17 @@ const config: Config = {
     extend: {
       colors: {
         app: {
-          bg: '#090a0f',
-          panel: '#13151c',
-          panelSoft: '#1c1f2a',
-          line: '#333848',
-          text: '#d1d5db',
-          textStrong: '#ffffff',
-          accent: '#3b82f6',
+          bg: '#05070b',
+          panel: '#0e111a',
+          panelSoft: '#161b26',
+          line: '#272f42',
+          text: '#94a3b8',
+          textStrong: '#f8fafc',
+          accent: '#06b6d4', // Cyan accent for modern CAD feel
         }
       },
       boxShadow: {
-        glow: '0 0 15px rgba(59, 130, 246, 0.5)',
+        glow: '0 0 20px rgba(6, 182, 212, 0.35)',
       },
       borderRadius: {
         xl2: '1rem',
