@@ -1,95 +1,69 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { ArrowRight, Layers3, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowRight, Camera, Check, Layers3, ShieldCheck, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 
 export default function AuthPage() {
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  const [signup, setSignup] = useState(false);
 
   return (
-    <main className="app-shell flex min-h-screen items-center justify-center p-6">
-      <div className="grid w-full max-w-6xl overflow-hidden rounded-3xl border border-white/[0.08] bg-[#080b12]/90 shadow-2xl lg:grid-cols-[1.1fr_.9fr]">
-        <section className="relative hidden min-h-[680px] overflow-hidden p-10 lg:block">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(6,182,212,.20),transparent_35%),radial-gradient(circle_at_80%_80%,rgba(99,102,241,.16),transparent_35%)]" />
+    <main className="app-shell flex min-h-screen items-center justify-center p-5">
+      <div className="grid w-full max-w-6xl overflow-hidden rounded-3xl border border-white/[0.08] bg-[#0c0f14] shadow-2xl lg:grid-cols-[1.15fr_.85fr]">
+        <section className="relative hidden min-h-[720px] overflow-hidden p-10 lg:block">
+          <div className="absolute inset-0 bg-[linear-gradient(125deg,#25211d,#17191a_48%,#101416)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_65%_28%,rgba(255,255,255,.14),transparent_22%),linear-gradient(180deg,transparent_35%,rgba(0,0,0,.72))]" />
+          <div className="absolute bottom-0 left-0 right-0 h-[45%] bg-gradient-to-t from-black/65 to-transparent" />
           <div className="relative z-10 flex h-full flex-col">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-400/10">
-                <Layers3 className="h-5 w-5 text-cyan-300" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5">
+                <Layers3 className="h-4 w-4 text-teal-200" />
               </div>
-              <div>
-                <p className="font-semibold text-white">Nest & Frame</p>
-                <p className="text-[10px] uppercase tracking-[.2em] text-slate-500">Studio</p>
-              </div>
+              <span className="text-sm font-semibold text-white">Nest & Frame</span>
             </div>
-
             <div className="mt-auto max-w-xl">
-              <p className="eyebrow">Professional visual workspace</p>
-              <h1 className="mt-4 text-5xl font-semibold tracking-tight text-white">
-                Design the room before you build it.
+              <p className="eyebrow text-teal-200/70">Room intelligence</p>
+              <h1 className="mt-3 text-5xl font-medium tracking-[-.035em] text-white">
+                See the finished room before you buy anything.
               </h1>
-              <p className="mt-5 max-w-lg text-sm leading-7 text-slate-400">
-                Organize rooms, products, dimensions, finishes and procurement in one visual workspace.
+              <p className="mt-5 max-w-lg text-sm leading-7 text-slate-300/70">
+                Photograph your space, test real products at real dimensions, and turn the final design into a practical shopping and contractor plan.
               </p>
-
-              <div className="mt-8 grid gap-3 sm:grid-cols-3">
-                {[
-                  ['Visual', 'Photo-based layouts'],
-                  ['Verified', 'Product-ready catalog'],
-                  ['Procure', 'Contractor specifications'],
-                ].map(([title, text]) => (
-                  <div key={title} className="glass-soft rounded-2xl p-4">
-                    <Sparkles className="mb-5 h-4 w-4 text-cyan-300" />
-                    <p className="text-sm font-semibold text-white">{title}</p>
-                    <p className="mt-1 text-xs leading-5 text-slate-500">{text}</p>
-                  </div>
+              <div className="mt-7 flex flex-wrap gap-2">
+                {['Photo-based design', 'Real dimensions', 'Procurement ready'].map((x) => (
+                  <span key={x} className="flex items-center gap-1.5 rounded-full border border-white/10 bg-black/20 px-3 py-1.5 text-[10px] text-slate-300">
+                    <Check className="h-3 w-3 text-teal-300" /> {x}
+                  </span>
                 ))}
               </div>
             </div>
           </div>
         </section>
 
-        <section className="flex min-h-[680px] items-center p-7 sm:p-12">
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="w-full">
-            <p className="eyebrow">Welcome back</p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white">
-              {mode === 'signin' ? 'Sign in to your studio' : 'Create your studio'}
-            </h2>
-            <p className="mt-2 text-sm text-slate-500">
-              {mode === 'signin'
-                ? 'Continue where your projects left off.'
-                : 'Start building professional room concepts.'}
-            </p>
+        <section className="flex min-h-[720px] items-center p-8 sm:p-12">
+          <div className="w-full">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-300/10 text-teal-200 lg:hidden"><Camera className="h-4 w-4" /></div>
+            <p className="eyebrow mt-8 lg:mt-0">Nest & Frame Studio</p>
+            <h2 className="mt-3 text-3xl font-medium tracking-tight text-white">{signup ? 'Create your workspace' : 'Welcome back'}</h2>
+            <p className="mt-2 text-sm text-slate-500">{signup ? 'Start your first room visualization.' : 'Open your projects and continue designing.'}</p>
 
-            <form
-              className="mt-8 space-y-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                window.location.href = '/dashboard';
-              }}
-            >
-              {mode === 'signup' && <input className="input" placeholder="Full name" required />}
-              <input className="input" type="email" placeholder="Email address" required />
-              <input className="input" type="password" placeholder="Password" minLength={8} required />
-
-              <button className="button button-primary w-full py-3" type="submit">
-                {mode === 'signin' ? 'Enter Studio' : 'Create Account'}
-                <ArrowRight className="h-4 w-4" />
+            <form onSubmit={(e) => { e.preventDefault(); window.location.href = '/dashboard'; }} className="mt-8 space-y-4">
+              {signup && <input className="field" placeholder="Your name" required />}
+              <input className="field" type="email" placeholder="Email address" required />
+              <input className="field" type="password" placeholder="Password" minLength={8} required />
+              <button className="control control-active w-full py-3.5" type="submit">
+                {signup ? 'Create workspace' : 'Continue to Studio'} <ArrowRight className="h-4 w-4" />
               </button>
             </form>
 
-            <div className="mt-6 flex items-center gap-2 rounded-xl border border-emerald-400/10 bg-emerald-400/[0.04] p-3 text-xs text-slate-500">
-              <ShieldCheck className="h-4 w-4 text-emerald-400" />
-              <span>Secure session handling is ready for Supabase integration.</span>
+            <div className="mt-6 space-y-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+              <div className="flex gap-3"><ShieldCheck className="mt-0.5 h-4 w-4 text-teal-300" /><div><p className="text-xs text-white">Your projects stay private</p><p className="mt-1 text-[10px] leading-4 text-slate-600">Supabase authentication and row-level security can power the production account layer.</p></div></div>
+              <div className="flex gap-3"><Sparkles className="mt-0.5 h-4 w-4 text-teal-300" /><div><p className="text-xs text-white">Built for real spaces</p><p className="mt-1 text-[10px] leading-4 text-slate-600">The Studio is designed around room photos, dimensions and actual products—not abstract shapes.</p></div></div>
             </div>
 
-            <button
-              className="mt-6 w-full text-center text-xs text-slate-500 transition hover:text-cyan-300"
-              onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
-            >
-              {mode === 'signin' ? "Don't have an account? Create one" : 'Already have an account? Sign in'}
+            <button onClick={() => setSignup(!signup)} className="mt-7 w-full text-xs text-slate-600 hover:text-teal-200">
+              {signup ? 'Already have an account? Sign in' : 'New to Nest & Frame? Create an account'}
             </button>
-          </motion.div>
+          </div>
         </section>
       </div>
     </main>

@@ -1,57 +1,24 @@
 'use client';
 
-import { ArrowLeft, CheckCircle2, Download, ExternalLink, FileText, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, Download, ExternalLink, FileText, ShoppingBag } from 'lucide-react';
 
-const items = [
-  { name: 'Larsen 3-Seat Sofa', vendor: 'Verified Catalog', qty: 1, price: 1899 },
-  { name: 'Arc Floor Lamp', vendor: 'Verified Catalog', qty: 1, price: 349 },
+const rows = [
+  ['Sven Sofa', 'Article', 1, 1899, '86" W × 38" D × 34" H'],
+  ['Arched Floor Lamp', 'Verified vendor', 1, 349, '18" W × 18" D × 68" H'],
 ];
 
-export default function CheckoutPage() {
-  const total = items.reduce((sum, item) => sum + item.price * item.qty, 0);
-
+export default function Checkout() {
+  const total = rows.reduce((s, r) => s + Number(r[3]) * Number(r[2]), 0);
   return (
     <main className="app-shell min-h-screen">
-      <header className="flex h-16 items-center justify-between border-b border-white/[0.06] px-6 lg:px-9">
-        <a href="/studio/living-room" className="button"><ArrowLeft className="h-3.5 w-3.5" /> Back to Studio</a>
-        <div className="flex items-center gap-2 text-xs text-slate-500"><CheckCircle2 className="h-4 w-4 text-emerald-400" /> Project ready</div>
-      </header>
-
-      <div className="mx-auto max-w-6xl px-6 py-10">
-        <div>
-          <p className="eyebrow">Procurement</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white">Contractor spec sheet</h1>
-          <p className="mt-2 text-sm text-slate-500">A consolidated materials list from the current scene.</p>
-        </div>
-
-        <div className="mt-8 grid gap-5 lg:grid-cols-[1fr_340px]">
-          <section className="panel overflow-hidden">
-            <div className="flex items-center justify-between border-b border-white/[0.06] p-5">
-              <div className="flex items-center gap-3"><FileText className="h-4 w-4 text-cyan-300" /><span className="text-sm font-semibold text-white">Bill of Materials</span></div>
-              <button className="button"><Download className="h-3.5 w-3.5" /> Export PDF</button>
-            </div>
-            <div className="divide-y divide-white/[0.05]">
-              {items.map((item) => (
-                <div key={item.name} className="grid grid-cols-[1fr_auto_auto] items-center gap-6 p-5">
-                  <div><p className="text-sm font-semibold text-white">{item.name}</p><p className="mt-1 text-xs text-slate-600">{item.vendor}</p></div>
-                  <div className="text-xs text-slate-500">Qty {item.qty}</div>
-                  <div className="text-sm font-semibold text-white">${(item.price * item.qty).toLocaleString()}</div>
-                </div>
-              ))}
-            </div>
+      <header className="flex h-14 items-center justify-between border-b border-white/[0.06] px-5"><a href="/studio/living-room" className="control"><ArrowLeft className="h-3 w-3" /> Studio</a><span className="text-[9px] text-slate-600">Nest & Frame procurement</span></header>
+      <div className="mx-auto max-w-6xl px-5 py-10">
+        <p className="eyebrow">Procurement</p><h1 className="mt-2 text-3xl font-medium text-white">Room specification</h1><p className="mt-2 text-sm text-slate-500">Products currently placed in Oak Street Living Room.</p>
+        <div className="mt-8 grid gap-5 lg:grid-cols-[1fr_330px]">
+          <section className="panel overflow-hidden"><div className="flex items-center justify-between border-b border-white/[0.06] p-5"><div className="flex items-center gap-2"><FileText className="h-4 w-4 text-teal-200" /><span className="text-xs font-medium text-white">Bill of materials</span></div><button className="control"><Download className="h-3 w-3" /> Export</button></div>
+            <div className="divide-y divide-white/[0.05]">{rows.map((r) => <div key={r[0] as string} className="grid grid-cols-[1fr_auto_auto] gap-5 p-5"><div><p className="text-xs font-medium text-white">{r[0] as string}</p><p className="mt-1 text-[9px] text-slate-600">{r[1] as string} · {r[4] as string}</p></div><span className="text-[10px] text-slate-500">Qty {r[2] as number}</span><span className="text-xs font-medium text-white">${Number(r[3]).toLocaleString()}</span></div>)}</div>
           </section>
-
-          <aside className="panel h-fit p-5">
-            <div className="flex items-center gap-3"><ShoppingBag className="h-4 w-4 text-cyan-300" /><span className="text-sm font-semibold text-white">Order summary</span></div>
-            <div className="mt-5 space-y-3 border-b border-white/[0.06] pb-5">
-              <div className="flex justify-between text-xs"><span className="text-slate-500">Items</span><span className="text-slate-300">{items.length}</span></div>
-              <div className="flex justify-between text-xs"><span className="text-slate-500">Subtotal</span><span className="text-slate-300">${total.toLocaleString()}</span></div>
-              <div className="flex justify-between text-xs"><span className="text-slate-500">Shipping</span><span className="text-slate-600">Vendor calculated</span></div>
-            </div>
-            <div className="flex justify-between pt-5"><span className="text-sm font-semibold text-white">Estimated total</span><span className="text-lg font-semibold text-white">${total.toLocaleString()}</span></div>
-            <button className="button button-primary mt-5 w-full"><ExternalLink className="h-3.5 w-3.5" /> Continue to Vendors</button>
-            <p className="mt-3 text-center text-[10px] leading-4 text-slate-600">Live vendor pricing and checkout links should be populated from verified catalog records before production ordering.</p>
-          </aside>
+          <aside className="panel h-fit p-5"><div className="flex items-center gap-2"><ShoppingBag className="h-4 w-4 text-teal-200" /><span className="text-xs font-medium text-white">Order summary</span></div><div className="my-5 border-y border-white/[0.06] py-5"><div className="flex justify-between text-xs"><span className="text-slate-600">Products</span><span className="text-slate-300">{rows.length}</span></div><div className="mt-3 flex justify-between text-xs"><span className="text-slate-600">Estimated total</span><span className="text-white">${total.toLocaleString()}</span></div></div><button className="control control-active w-full"><ExternalLink className="h-3 w-3" /> Open vendor links</button><p className="mt-3 text-[9px] leading-4 text-slate-600">Live ordering should be enabled only after each catalog record has a verified current vendor URL and pricing source.</p></aside>
         </div>
       </div>
     </main>

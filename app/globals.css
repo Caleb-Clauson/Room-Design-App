@@ -2,117 +2,58 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: dark;
-}
+:root { color-scheme: dark; }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
-html,
-body {
+html, body {
   margin: 0;
-  padding: 0;
   min-height: 100%;
   width: 100%;
-  background: #05070b;
-  color: #cbd5e1;
+  background: #090b0f;
+  color: #e5e7eb;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-body {
-  overflow-x: hidden;
-}
-
-button,
-input,
-select,
-textarea {
-  font: inherit;
-}
-
-button {
-  -webkit-tap-highlight-color: transparent;
-}
-
-::selection {
-  background: rgba(6, 182, 212, .35);
-  color: white;
-}
+body { overflow-x: hidden; }
+button, input, select, textarea { font: inherit; }
+button { -webkit-tap-highlight-color: transparent; }
+::selection { background: rgba(20,184,166,.3); color: white; }
 
 @layer components {
   .app-shell {
-    @apply min-h-screen bg-[#05070b] text-slate-300;
+    @apply min-h-screen bg-[#090b0f] text-slate-300;
     background-image:
-      radial-gradient(circle at 15% 0%, rgba(8, 145, 178, .10), transparent 28rem),
-      radial-gradient(circle at 85% 15%, rgba(99, 102, 241, .08), transparent 30rem);
-  }
-
-  .glass {
-    @apply border border-white/[0.08] bg-[#0b0f17]/80 backdrop-blur-2xl;
-    box-shadow: 0 20px 60px rgba(0,0,0,.28);
-  }
-
-  .glass-soft {
-    @apply border border-white/[0.06] bg-white/[0.025] backdrop-blur-xl;
+      radial-gradient(circle at 20% -10%, rgba(45,212,191,.07), transparent 30rem),
+      radial-gradient(circle at 100% 0%, rgba(148,163,184,.045), transparent 32rem);
   }
 
   .panel {
-    @apply rounded-2xl border border-white/[0.08] bg-[#0c111a]/90;
-    box-shadow: 0 20px 60px rgba(0,0,0,.3);
+    @apply border border-white/[0.075] bg-[#101318]/95 backdrop-blur-xl;
+    box-shadow: 0 18px 60px rgba(0,0,0,.25);
   }
+
+  .control {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.035] px-3 py-2 text-xs font-medium text-slate-300 transition;
+  }
+  .control:hover { @apply border-white/[0.15] bg-white/[0.07] text-white; }
+
+  .control-active {
+    @apply border-teal-300/30 bg-teal-300/[0.09] text-teal-100;
+  }
+
+  .field {
+    @apply w-full rounded-lg border border-white/[0.08] bg-black/20 px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-600;
+  }
+  .field:focus { @apply border-teal-300/40 ring-2 ring-teal-300/10; }
 
   .eyebrow {
-    @apply text-[10px] font-bold uppercase tracking-[.2em] text-slate-500;
+    @apply text-[9px] font-bold uppercase tracking-[.2em] text-slate-600;
   }
 
-  .muted {
-    @apply text-slate-500;
-  }
+  .divider { @apply border-white/[0.06]; }
 
-  .button {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.045] px-3.5 py-2 text-xs font-semibold text-slate-200 transition;
-  }
-
-  .button:hover {
-    @apply border-cyan-400/30 bg-cyan-400/[0.08] text-white;
-  }
-
-  .button-primary {
-    @apply border-cyan-400/40 bg-cyan-400/15 text-white;
-    box-shadow: 0 0 24px rgba(6,182,212,.12);
-  }
-
-  .button-primary:hover {
-    @apply bg-cyan-400/25;
-  }
-
-  .input {
-    @apply w-full rounded-xl border border-white/[0.08] bg-black/20 px-3.5 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-600;
-  }
-
-  .input:focus {
-    @apply border-cyan-400/40 ring-2 ring-cyan-400/10;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: rgba(148,163,184,.16);
-    border-radius: 999px;
-  }
-}
-
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+  .scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+  .scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .scrollbar::-webkit-scrollbar-thumb { background: rgba(148,163,184,.16); border-radius: 999px; }
 }

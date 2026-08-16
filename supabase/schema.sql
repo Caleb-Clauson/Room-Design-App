@@ -1,51 +1,49 @@
-create extension if not exists pgcrypto;
+-- Enable UUID extension
+create extension if not exists "uuid-ossp";
 
-create table if not exists public.profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
-  email text unique,
-  full_name text,
-  created_at timestamptz not null default now()
+-- Profiles Table (Linked to Supabase Auth)
+create table public.profiles (
+  id uuid references auth.users on delete cascade primary key,
+  email text not null,
+  tier text check (tier in ('home', 'pro')) default 'home',
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
-create table if not exists public.projects (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
+-- Projects Table
+create table public.projects (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references public.profiles(id) on delete cascade not null,
   name text not null,
-  room_type text not null check (room_type in ('kitchen', 'laundry', 'home-office', 'floral')),
-  room_bounds jsonb not null,
-  nodes jsonb not null,
-  structures jsonb not null,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  room_type text not null,
+  room_bounds jsonb default '{}'::jsonb,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
-create index if not exists idx_projects_user_updated on public.projects(user_id, updated_at desc);
+-- Normalized Product Catalog Table (Supplier Agnostic)
+create table public.products (
+  id uuid default uuid_generate_v4() primary key,
+  supplier text not null, -- e.g., 'Ferguson', 'Article'
+  sku text unique not null,
+  name text not null,
+  category text not null,
+  price numeric(10,2) not null,
+  dimensions jsonb not null, -- { w, h, d, unit }
+  finish text,
+  asset_url text not null, -- transparent cutout or 3D asset link
+  vendor_url text not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
 
-alter table public.projects enable row level security;
-alter table public.profiles enable row level security;
-
-create policy if not exists "projects_select_own" on public.projects
-  for select to authenticated using (auth.uid() = user_id);
-
-create policy if not exists "projects_insert_own" on public.projects
-  for insert to authenticated with check (auth.uid() = user_id);
-
-create policy if not exists "projects_update_own" on public.projects
-  for update to authenticated using (auth.uid() = user_id);
-
-create policy if not exists "projects_delete_own" on public.projects
-  for delete to authenticated using (auth.uid() = user_id);
-
-create or replace function public.set_updated_at()
-returns trigger as $$
-begin
-  new.updated_at = now();
-  return new;
-end;
-$$ language plpgsql;
-
-drop trigger if exists trg_projects_updated_at on public.projects;
-create trigger trg_projects_updated_at
-before update on public.projects
-for each row
-execute function public.set_updated_at();
+-- Scene Assets Placed in Projects
+create table public.scene_items (
+  id uuid default uuid_generate_v4() primary key,
+  project_id uuid references public.projects(id) on delete cascade not null,
+  product_id uuid references public.products(id) on delete set null,
+  name text not null,
+  position jsonb not null, -- [x, y, z]
+  rotation jsonb not null, -- [x, y, z]
+  scale jsonb not null, -- [x, y, z]
+  custom_material text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);

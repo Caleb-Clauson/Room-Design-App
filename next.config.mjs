@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  cacheComponents: true, // Enables the cache components and instant route segment configurations
 };
 
 export default nextConfig;

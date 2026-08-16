@@ -1,17 +1,23 @@
-# Nest & Frame Studio
+# Nest & Frame Studio — Visualizer V2
 
-Replacement application foundation for the Nest & Frame Studio SaaS.
+This replaces the geometric placeholder visualizer with an image-first room-design experience.
 
-## Included
+## Core routes
 
-- `/auth` — polished sign-in/sign-up shell
-- `/dashboard` — project hub
-- `/studio/[id]` — professional dark visualizer workspace
-- `/checkout` — contractor spec/procurement view
-- Interactive scene objects with drag, scale and rotation
-- Catalog abstraction
-- Supabase browser client scaffold
-- Tailwind + Framer Motion + Lucide UI foundation
+- `/auth`
+- `/dashboard`
+- `/studio/[id]`
+- `/checkout`
+
+## New architecture
+
+The Studio is divided into:
+
+- `RoomCanvas` — room photography + draggable product imagery
+- `ProductCatalog` — real image-based product cards and physical dimensions
+- `Inspector` — product dimensions, scene scale, rotation and procurement actions
+- `Assistant` — natural-language room assistant surface
+- project/scene state in the Studio route
 
 ## Install
 
@@ -20,19 +26,35 @@ npm install next react react-dom framer-motion lucide-react @supabase/ssr @supab
 npm install -D typescript tailwindcss postcss autoprefixer @types/node @types/react @types/react-dom
 ```
 
-Add the files to the corresponding locations in your Next.js App Router project.
+## Production catalog
 
-## Supabase environment
+The included catalog is deliberately a development dataset. Product imagery and prices must be verified before production use. Replace `PRODUCTS` in `components/studio/ProductCatalog.tsx` with records from your approved catalog ingestion layer.
 
-Create `.env.local`:
+A production product record should contain:
 
-```env
-NEXT_PUBLIC_SUPABASE_URL=your-project-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-```
+- vendor
+- manufacturer/brand
+- SKU
+- current price
+- currency
+- dimensions
+- product URL
+- image URLs
+- image license/source
+- verification timestamp
+- availability status
 
-The current UI deliberately falls back to a local/demo experience when Supabase variables are absent.
+## Production next steps
 
-## Important production note
+1. Supabase Auth + RLS
+2. Supabase project/scene persistence
+3. Supabase Storage for room photos
+4. Room measurement / perspective calibration
+5. Transparent product cutouts or 3D assets
+6. Product ingestion and verification
+7. Real spatial collision/clearance calculations
+8. AI tool-calling layer
+9. PDF contractor spec generation
+10. Vendor-specific purchasing links
 
-The catalog records in the demo Studio are intentionally sample records. Do not represent them as live Ferguson, Article, or HomeGoods inventory/pricing until they are populated from verified current vendor/manufacturer data and their permitted product imagery/links.
+The demo deliberately avoids claiming the sample catalog is live inventory.

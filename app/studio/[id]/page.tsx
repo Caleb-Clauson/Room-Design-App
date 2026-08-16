@@ -1,238 +1,219 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
-import {
-  ArrowLeft, Box, ChevronDown, ChevronRight, CircleHelp, Download, Eye, Layers3,
-  Maximize2, Minus, MousePointer2, Plus, RotateCw, Save, Search, ShoppingBag,
-  Sparkles, Trash2, Undo2, Redo2, X
-} from 'lucide-react';
+import React, { useState, use, Suspense } from 'react';
+import { ArrowLeft, Box, Lightbulb, Image as ImageIcon, Sliders, Settings, Eye, Download, Search, Layers, Compass, Sun } from 'lucide-react';
+import { NormalizedProduct } from '../../../types/scene';
 
-type Product = {
-  id: string;
-  name: string;
-  vendor: string;
-  price: number;
-  category: string;
-  dimensions: string;
-};
-
-type SceneItem = Product & { x: number; y: number; scale: number; rotation: number };
-
-const catalog: Product[] = [
-  { id: 'sofa-01', name: 'Larsen 3-Seat Sofa', vendor: 'Verified Catalog', price: 1899, category: 'Seating', dimensions: '86" W × 38" D × 32" H' },
-  { id: 'table-01', name: 'Oakline Dining Table', vendor: 'Verified Catalog', price: 1295, category: 'Tables', dimensions: '72" W × 36" D × 30" H' },
-  { id: 'lamp-01', name: 'Arc Floor Lamp', vendor: 'Verified Catalog', price: 349, category: 'Lighting', dimensions: '18" W × 18" D × 68" H' },
-  { id: 'chair-01', name: 'Cove Accent Chair', vendor: 'Verified Catalog', price: 799, category: 'Seating', dimensions: '31" W × 33" D × 30" H' },
+const MOCK_LIBRARY_ITEMS: NormalizedProduct[] = [
+  {
+    id: 'lib-1',
+    supplier: 'Article',
+    sku: 'ART-SVEN-01',
+    name: 'Leather Highrise Sofa',
+    category: 'Furniture',
+    price: 1699,
+    dimensions: { width: 88, height: 32, depth: 38 },
+    finish: 'Charme Tan',
+    assetUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=600&q=80',
+    vendorUrl: 'https://www.article.com'
+  },
+  {
+    id: 'lib-2',
+    supplier: 'Ferguson',
+    sku: 'FERG-LIGHT-02',
+    name: 'Modern Industrial Chandelier',
+    category: 'Lighting',
+    price: 420,
+    dimensions: { width: 36, height: 24, depth: 36 },
+    finish: 'Matte Black / Brass',
+    assetUrl: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=600&q=80',
+    vendorUrl: 'https://www.ferguson.com'
+  }
 ];
 
-const initialItems: SceneItem[] = [
-  { ...catalog[0], x: 42, y: 62, scale: 1, rotation: 0 },
-  { ...catalog[2], x: 73, y: 48, scale: .75, rotation: 0 },
-];
+function StudioWorkspaceContent({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
+  const roomId = resolvedParams.id;
 
-export default function StudioPage({ params }: { params: { id: string } }) {
-  const [items, setItems] = useState<SceneItem[]>(initialItems);
-  const [selectedId, setSelectedId] = useState<string | null>('sofa-01');
-  const [catalogOpen, setCatalogOpen] = useState(true);
-  const [assistantOpen, setAssistantOpen] = useState(false);
-  const [prompt, setPrompt] = useState('');
-  const [zoom, setZoom] = useState(100);
-
-  const selected = useMemo(() => items.find((item) => item.id === selectedId) ?? null, [items, selectedId]);
-
-  function addProduct(product: Product) {
-    const item: SceneItem = { ...product, x: 52, y: 50, scale: .8, rotation: 0 };
-    setItems((current) => [...current, item]);
-    setSelectedId(product.id);
-  }
-
-  function updateSelected(patch: Partial<SceneItem>) {
-    setItems((current) => current.map((item) => item.id === selectedId ? { ...item, ...patch } : item));
-  }
-
-  function removeSelected() {
-    if (!selectedId) return;
-    setItems((current) => current.filter((item) => item.id !== selectedId));
-    setSelectedId(null);
-  }
+  const [activeLibraryTab, setActiveLibraryTab] = useState<'objects' | 'materials' | 'lights'>('objects');
+  const [exposure, setExposure] = useState<number>(8.0);
+  const [shadowBoost, setShadowBoost] = useState<number>(0.58);
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   return (
-    <main className="h-screen overflow-hidden bg-[#05070b] text-slate-300">
-      <header className="flex h-14 items-center justify-between border-b border-white/[0.07] bg-[#080b12]/90 px-4 backdrop-blur-xl">
+    <main className="flex h-screen w-screen flex-col bg-[#0b0e14] text-slate-300 overflow-hidden font-sans select-none">
+      
+      {/* Top Application Title Bar */}
+      <header className="flex h-11 items-center justify-between border-b border-[#1b222d] bg-[#10141d] px-4 text-xs z-30">
         <div className="flex items-center gap-3">
-          <a href="/dashboard" className="button !px-2.5"><ArrowLeft className="h-4 w-4" /></a>
-          <div className="h-5 w-px bg-white/[0.08]" />
-          <div>
-            <p className="text-xs font-semibold text-white">{params.id === 'new' ? 'Untitled Project' : 'Oak Street Living Room'}</p>
-            <p className="text-[9px] uppercase tracking-[.18em] text-emerald-400">Saved just now</p>
-          </div>
-        </div>
-
-        <div className="hidden items-center gap-1 rounded-xl border border-white/[0.07] bg-black/20 p-1 md:flex">
-          <button className="button !border-0 !bg-transparent !px-2.5"><Undo2 className="h-3.5 w-3.5" /></button>
-          <button className="button !border-0 !bg-transparent !px-2.5"><Redo2 className="h-3.5 w-3.5" /></button>
+          <a href="/dashboard" className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors">
+            <ArrowLeft className="h-3.5 w-3.5" /> File
+          </a>
+          <span className="text-slate-600">|</span>
+          <span className="font-semibold text-slate-200">Nest & Frame Studio — Interior Highrise* (ID: {roomId})</span>
         </div>
 
         <div className="flex items-center gap-2">
-          <button className="button hidden sm:inline-flex"><Eye className="h-3.5 w-3.5" /> Preview</button>
-          <a href="/checkout" className="button button-primary"><ShoppingBag className="h-3.5 w-3.5" /> Specs & Checkout</a>
+          <div className="flex items-center gap-1 bg-[#161c27] px-3 py-1 rounded-md border border-[#222a38] text-[11px] text-slate-400">
+            <span>Twinmotion Engine 2026.1</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <a href="/checkout" className="flex items-center gap-1.5 bg-emerald-600/20 text-emerald-400 border border-emerald-500/40 px-3 py-1 rounded-md text-[11px] font-bold hover:bg-emerald-600/30 transition-all">
+            <Download className="h-3 w-3" /> Export Spec Sheet
+          </a>
         </div>
       </header>
 
-      <div className="flex h-[calc(100vh-3.5rem)]">
-        <aside className="hidden w-60 shrink-0 border-r border-white/[0.07] bg-[#080b12] lg:flex lg:flex-col">
-          <div className="border-b border-white/[0.06] p-4">
-            <p className="eyebrow">Scene</p>
-            <div className="mt-3 flex items-center gap-2 rounded-xl bg-cyan-400/[0.07] px-3 py-2 text-xs text-white">
-              <Layers3 className="h-3.5 w-3.5 text-cyan-300" />
-              Living Room
-            </div>
-          </div>
-          <div className="scrollbar-thin flex-1 overflow-auto p-3">
-            <div className="mb-2 flex items-center gap-2 px-2 text-[10px] font-bold uppercase tracking-[.18em] text-slate-600">
-              <ChevronDown className="h-3 w-3" /> Objects
-            </div>
-            {items.map((item) => (
-              <button key={item.id} onClick={() => setSelectedId(item.id)} className={`mb-1 flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-xs transition ${selectedId === item.id ? 'bg-cyan-400/10 text-white' : 'text-slate-500 hover:bg-white/[0.04] hover:text-white'}`}>
-                <Box className="h-3.5 w-3.5" />
-                <span className="truncate">{item.name}</span>
-              </button>
-            ))}
-          </div>
-          <button onClick={() => setAssistantOpen(true)} className="m-3 flex items-center gap-2 rounded-xl border border-cyan-400/15 bg-cyan-400/[0.06] p-3 text-left text-xs text-cyan-100">
-            <Sparkles className="h-4 w-4 text-cyan-300" />
-            <span><strong className="block">Spatial Assistant</strong><span className="text-[10px] text-slate-500">Ask about your scene</span></span>
-          </button>
-        </aside>
-
-        <section className="relative flex min-w-0 flex-1 flex-col bg-[#070a10]">
-          <div className="absolute left-1/2 top-4 z-20 flex -translate-x-1/2 items-center gap-1 rounded-xl border border-white/[0.08] bg-[#0c111a]/90 p-1 shadow-xl backdrop-blur-xl">
-            <button className="button !border-0 !bg-transparent !px-2.5"><MousePointer2 className="h-3.5 w-3.5" /></button>
-            <button className="button !border-0 !bg-transparent !px-2.5"><Maximize2 className="h-3.5 w-3.5" /></button>
-            <button className="button !border-0 !bg-transparent !px-2.5"><RotateCw className="h-3.5 w-3.5" /></button>
-          </div>
-
-          <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden p-6">
-            <div className="absolute inset-0 opacity-40 [background-image:linear-gradient(rgba(255,255,255,.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.025)_1px,transparent_1px)] [background-size:40px_40px]" />
-            <div
-              className="relative aspect-[4/3] w-[min(76vw,900px)] overflow-hidden rounded-xl border border-white/[0.10] bg-gradient-to-br from-[#343a42] via-[#20252b] to-[#11151a] shadow-[0_30px_100px_rgba(0,0,0,.6)]"
-              style={{ transform: `scale(${zoom / 100})` }}
+      {/* Main Workspace Layout (Left Library | Center 3D Viewport | Right Properties) */}
+      <div className="grid flex-1 grid-cols-[280px_1fr_320px] overflow-hidden">
+        
+        {/* Left Library Sidebar */}
+        <aside className="flex border-r border-[#1b222d] bg-[#121720] overflow-hidden">
+          {/* Left Vertical Icon Bar */}
+          <div className="flex flex-col items-center gap-4 border-r border-[#1b222d] bg-[#0e1219] py-4 w-16 shrink-0">
+            <button 
+              onClick={() => setActiveLibraryTab('materials')} 
+              className={`flex flex-col items-center gap-1 p-2 rounded-xl text-[10px] transition-colors ${activeLibraryTab === 'materials' ? 'text-cyan-400 bg-cyan-500/10' : 'text-slate-500 hover:text-slate-300'}`}
             >
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_20%,rgba(255,255,255,.12),transparent_38%),linear-gradient(180deg,transparent_58%,rgba(0,0,0,.32))]" />
-              <div className="absolute inset-x-0 bottom-0 h-[38%] bg-gradient-to-t from-[#5b4a3c]/70 to-transparent" />
+              <ImageIcon className="h-5 w-5" /> Materials
+            </button>
+            <button 
+              onClick={() => setActiveLibraryTab('objects')} 
+              className={`flex flex-col items-center gap-1 p-2 rounded-xl text-[10px] transition-colors ${activeLibraryTab === 'objects' ? 'text-cyan-400 bg-cyan-500/10' : 'text-slate-500 hover:text-slate-300'}`}
+            >
+              <Box className="h-5 w-5" /> Objects
+            </button>
+            <button 
+              onClick={() => setActiveLibraryTab('lights')} 
+              className={`flex flex-col items-center gap-1 p-2 rounded-xl text-[10px] transition-colors ${activeLibraryTab === 'lights' ? 'text-cyan-400 bg-cyan-500/10' : 'text-slate-500 hover:text-slate-300'}`}
+            >
+              <Lightbulb className="h-5 w-5" /> Lights
+            </button>
+          </div>
 
-              {items.map((item) => (
-                <motion.button
-                  key={`${item.id}-${item.x}-${item.y}`}
-                  drag
-                  dragMomentum={false}
-                  onClick={(e) => { e.stopPropagation(); setSelectedId(item.id); }}
-                  onDragEnd={(_, info) => {
-                    const rect = (e?.currentTarget as HTMLElement)?.parentElement?.getBoundingClientRect();
-                    if (!rect) return;
-                    updateSelected({
-                      x: Math.max(5, Math.min(95, item.x + (info.offset.x / rect.width) * 100)),
-                      y: Math.max(5, Math.min(95, item.y + (info.offset.y / rect.height) * 100)),
-                    });
-                  }}
-                  className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-lg transition ${selectedId === item.id ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-transparent' : 'hover:ring-1 hover:ring-white/40'}`}
-                  style={{ left: `${item.x}%`, top: `${item.y}%`, transform: `translate(-50%,-50%) rotate(${item.rotation}deg) scale(${item.scale})` }}
-                >
-                  <div className="flex h-24 w-44 items-center justify-center rounded-lg border border-white/20 bg-gradient-to-br from-[#9b8068] to-[#3e332b] shadow-2xl">
-                    <Box className="h-8 w-8 text-white/40" />
+          {/* Library Content Panel */}
+          <div className="flex flex-1 flex-col p-4 overflow-y-auto">
+            <div className="mb-4">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Library</h2>
+              <div className="relative">
+                <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
+                <input 
+                  type="text" 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search catalog..." 
+                  className="w-full rounded-lg border border-[#222a38] bg-[#090c12] pl-9 pr-3 py-2 text-xs text-white outline-none focus:border-cyan-500 transition-colors"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="text-[10px] font-bold uppercase text-slate-500 tracking-wider mb-2">Ferguson & Article Assets</div>
+              {MOCK_LIBRARY_ITEMS.map((item) => (
+                <div key={item.id} className="group cursor-pointer rounded-xl border border-[#222a38] bg-[#161c27] p-2.5 hover:border-cyan-500 transition-all">
+                  <div className="h-20 w-full rounded-lg overflow-hidden mb-2 border border-[#1b222d]">
+                    <img src={item.assetUrl} alt={item.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform" />
                   </div>
-                  {selectedId === item.id && <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] font-semibold text-cyan-300">{item.name}</span>}
-                </motion.button>
+                  <div className="text-xs font-bold text-white truncate">{item.name}</div>
+                  <div className="flex items-center justify-between mt-1 text-[10px]">
+                    <span className="text-cyan-400">{item.supplier}</span>
+                    <span className="text-emerald-400 font-semibold">${item.price}</span>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
+        </aside>
 
-          <div className="flex h-12 items-center justify-between border-t border-white/[0.07] bg-[#080b12] px-4">
-            <div className="flex items-center gap-1">
-              <button className="button !px-2" onClick={() => setZoom(Math.max(50, zoom - 10))}><Minus className="h-3.5 w-3.5" /></button>
-              <span className="w-12 text-center text-[10px] text-slate-500">{zoom}%</span>
-              <button className="button !px-2" onClick={() => setZoom(Math.min(160, zoom + 10))}><Plus className="h-3.5 w-3.5" /></button>
+        {/* Center 3D Viewport */}
+        <section className="relative flex flex-col items-center justify-center bg-[#07090e] overflow-hidden">
+          
+          {/* Top Viewport Floating Toolbar */}
+          <div className="absolute top-4 z-20 flex items-center gap-1 rounded-xl border border-[#222a38] bg-[#10141d]/90 p-1 backdrop-blur-md shadow-2xl">
+            <button className="p-2 rounded-lg bg-cyan-500 text-slate-950 font-bold shadow-[0_0_15px_rgba(6,182,212,0.4)]">✋ Move</button>
+            <button className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-[#161c27]">🔄 Rotate</button>
+            <button className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-[#161c27]">⤢ Scale</button>
+          </div>
+
+          {/* Photorealistic 3D Scene Mockup Viewport */}
+          <div className="relative h-full w-full overflow-hidden flex items-center justify-center">
+            <img 
+              src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80" 
+              alt="Highrise Interior Render" 
+              className="absolute inset-0 h-full w-full object-cover filter brightness-[0.85] contrast-[1.05]"
+            />
+            <div className="absolute bottom-4 left-4 rounded-lg bg-black/60 backdrop-blur-md px-3 py-1.5 border border-white/10 text-[11px] font-mono text-slate-300">
+              FPS: 60.0 • Triangles: 1.4M • PBR Raytracing Active
             </div>
-            <div className="text-[10px] text-slate-600">Canvas • Drag objects to position</div>
-            <button className="button !px-2.5"><CircleHelp className="h-3.5 w-3.5" /></button>
           </div>
         </section>
 
-        <aside className="hidden w-80 shrink-0 border-l border-white/[0.07] bg-[#080b12] xl:flex xl:flex-col">
-          <div className="border-b border-white/[0.06] p-4">
-            <div className="flex items-center justify-between">
-              <div><p className="eyebrow">Inspector</p><h2 className="mt-1 text-sm font-semibold text-white">{selected ? selected.name : 'Nothing selected'}</h2></div>
-              {selected && <button onClick={removeSelected} className="button !px-2 text-rose-300"><Trash2 className="h-3.5 w-3.5" /></button>}
+        {/* Right Properties & Inspector Sidebar */}
+        <aside className="flex flex-col border-l border-[#1b222d] bg-[#121720] overflow-y-auto p-4 space-y-6 text-xs">
+          
+          {/* Top Tab Switcher */}
+          <div className="grid grid-cols-5 gap-1 border-b border-[#1b222d] pb-3 text-slate-500">
+            <button className="flex flex-col items-center gap-1 text-cyan-400"><Sun className="h-4 w-4" /><span className="text-[9px]">Env</span></button>
+            <button className="flex flex-col items-center gap-1 hover:text-slate-300"><Compass className="h-4 w-4" /><span className="text-[9px]">Camera</span></button>
+            <button className="flex flex-col items-center gap-1 hover:text-slate-300"><Sliders className="h-4 w-4" /><span className="text-[9px]">Render</span></button>
+            <button className="flex flex-col items-center gap-1 hover:text-slate-300"><Layers className="h-4 w-4" /><span className="text-[9px]">FX</span></button>
+            <button className="flex flex-col items-center gap-1 hover:text-slate-300"><Settings className="h-4 w-4" /><span className="text-[9px]">Image</span></button>
+          </div>
+
+          {/* Exposure Properties */}
+          <div className="space-y-4">
+            <div className="font-bold text-white tracking-wider uppercase text-[10px]">Environment & Exposure</div>
+            
+            <div className="space-y-2 bg-[#161c27] p-3 rounded-xl border border-[#222a38]">
+              <div className="flex justify-between text-slate-400">
+                <span>Exposure</span>
+                <span className="font-mono text-white">{exposure.toFixed(2)}</span>
+              </div>
+              <input 
+                type="range" min="1" max="16" step="0.1" value={exposure} 
+                onChange={(e) => setExposure(parseFloat(e.target.value))}
+                className="w-full accent-cyan-500 cursor-pointer"
+              />
+            </div>
+
+            <div className="space-y-2 bg-[#161c27] p-3 rounded-xl border border-[#222a38]">
+              <div className="flex justify-between text-slate-400">
+                <span>Shadow Boost</span>
+                <span className="font-mono text-white">{shadowBoost.toFixed(2)}</span>
+              </div>
+              <input 
+                type="range" min="0" max="1" step="0.01" value={shadowBoost} 
+                onChange={(e) => setShadowBoost(parseFloat(e.target.value))}
+                className="w-full accent-cyan-500 cursor-pointer"
+              />
             </div>
           </div>
 
-          {selected ? (
-            <div className="scrollbar-thin flex-1 overflow-auto p-4">
-              <div className="rounded-xl border border-white/[0.06] bg-white/[0.025] p-3">
-                <p className="eyebrow">Product</p>
-                <p className="mt-2 text-xs font-semibold text-white">{selected.vendor}</p>
-                <p className="mt-1 text-xs text-slate-500">{selected.dimensions}</p>
-                <p className="mt-3 text-sm font-semibold text-white">${selected.price.toLocaleString()}</p>
-              </div>
-
-              <div className="mt-6">
-                <p className="eyebrow">Transform</p>
-                <label className="mt-3 block text-xs text-slate-500">Scale</label>
-                <input type="range" min=".4" max="1.8" step=".05" value={selected.scale} onChange={(e) => updateSelected({ scale: Number(e.target.value) })} className="mt-3 w-full accent-cyan-400" />
-                <div className="mt-1 flex justify-between text-[10px] text-slate-600"><span>40%</span><span>{Math.round(selected.scale * 100)}%</span><span>180%</span></div>
-
-                <label className="mt-5 block text-xs text-slate-500">Rotation</label>
-                <input type="range" min="-180" max="180" value={selected.rotation} onChange={(e) => updateSelected({ rotation: Number(e.target.value) })} className="mt-3 w-full accent-cyan-400" />
-                <div className="mt-1 text-right text-[10px] text-slate-600">{selected.rotation}°</div>
-              </div>
-
-              <div className="mt-6">
-                <p className="eyebrow">Placement</p>
-                <div className="mt-3 grid grid-cols-2 gap-2">
-                  <div className="glass-soft rounded-xl p-3"><span className="text-[9px] uppercase text-slate-600">X</span><p className="mt-1 text-xs text-white">{Math.round(selected.x)}%</p></div>
-                  <div className="glass-soft rounded-xl p-3"><span className="text-[9px] uppercase text-slate-600">Y</span><p className="mt-1 text-xs text-white">{Math.round(selected.y)}%</p></div>
-                </div>
-              </div>
-
-              <button className="button button-primary mt-6 w-full"><ShoppingBag className="h-3.5 w-3.5" /> Buy Online</button>
-            </div>
-          ) : (
-            <div className="p-6 text-center text-xs text-slate-600">Select an object in the scene.</div>
-          )}
-
-          <div className="border-t border-white/[0.06] p-3">
-            <button onClick={() => setCatalogOpen(!catalogOpen)} className="flex w-full items-center justify-between rounded-xl p-2 text-left">
-              <span className="flex items-center gap-2 text-xs font-semibold text-white"><ShoppingBag className="h-3.5 w-3.5 text-cyan-300" /> Verified Catalog</span>
-              {catalogOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
-            </button>
-            {catalogOpen && (
-              <div className="mt-2 max-h-48 space-y-2 overflow-auto">
-                {catalog.map((product) => (
-                  <button key={product.id} onClick={() => addProduct(product)} className="w-full rounded-xl border border-white/[0.06] bg-white/[0.025] p-3 text-left transition hover:border-cyan-400/25 hover:bg-cyan-400/[0.04]">
-                    <div className="flex justify-between gap-2"><span className="text-[11px] font-semibold text-white">{product.name}</span><span className="text-[10px] text-slate-400">${product.price}</span></div>
-                    <p className="mt-1 text-[9px] text-slate-600">{product.category} • {product.dimensions}</p>
-                  </button>
-                ))}
-              </div>
-            )}
+          {/* Selected Object Metadata */}
+          <div className="rounded-xl border border-[#222a38] bg-[#161c27] p-4 space-y-3">
+            <div className="font-bold text-white uppercase text-[10px] tracking-wider border-b border-[#222a38] pb-2">Selected Object Spec</div>
+            <div className="flex justify-between text-slate-400"><span>Product</span><span className="font-medium text-white">Leather Highrise Sofa</span></div>
+            <div className="flex justify-between text-slate-400"><span>Supplier</span><span className="text-cyan-400 font-medium">Article</span></div>
+            <div className="flex justify-between text-slate-400"><span>Price</span><span className="text-emerald-400 font-bold">$1,699</span></div>
+            
+            <a href="https://www.article.com" target="_blank" rel="noreferrer" className="block w-full text-center mt-3 bg-cyan-500 text-slate-950 font-bold py-2 rounded-lg hover:bg-cyan-400 transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+              Open Vendor Portal →
+            </a>
           </div>
+
         </aside>
-      </div>
 
-      {assistantOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-end bg-black/50 p-4 backdrop-blur-sm">
-          <motion.div initial={{ opacity: 0, y: 20, x: 20 }} animate={{ opacity: 1, y: 0, x: 0 }} className="w-full max-w-md rounded-2xl border border-white/[0.10] bg-[#0b0f17] p-5 shadow-2xl">
-            <div className="flex items-center justify-between">
-              <div><p className="eyebrow">AI Room Redecorator</p><h2 className="mt-1 text-lg font-semibold text-white">Spatial Assistant</h2></div>
-              <button className="button !px-2" onClick={() => setAssistantOpen(false)}><X className="h-4 w-4" /></button>
-            </div>
-            <p className="mt-3 text-xs leading-5 text-slate-500">Describe the direction you want to explore. The production AI layer can turn this into scene operations.</p>
-            <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} className="input mt-4 min-h-28 resize-none" placeholder="Try: Make the room warm, modern and add two accent chairs..." />
-            <button onClick={() => setPrompt('Concept queued: warm modern palette with two accent chairs.')} className="button button-primary mt-3 w-full"><Sparkles className="h-3.5 w-3.5" /> Analyze Scene</button>
-          </motion.div>
-        </div>
-      )}
+      </div>
     </main>
+  );
+}
+
+export default function ProfessionalStudioPage({ params }: { params: Promise<{ id: string }> }) {
+  return (
+    <Suspense fallback={<div className="flex h-screen w-screen items-center justify-center bg-[#07090e] text-xs font-bold text-cyan-400 uppercase tracking-widest">Loading Studio Environment...</div>}>
+      <StudioWorkspaceContent params={params} />
+    </Suspense>
   );
 }
