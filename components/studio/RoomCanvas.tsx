@@ -1,61 +1,114 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { RotateCw } from 'lucide-react';
-import { useRef } from 'react';
-import type { Product } from './ProductCatalog';
-
-export type PlacedItem = Product & { x: number; y: number; scale: number; rotation: number };
+import React, { Suspense } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { Environment, TransformControls, ContactShadows, Grid, PerspectiveCamera } from '@react-three/drei';
+import type { PlacedItem } from './ProductCatalog';
 
 export default function RoomCanvas({
   items,
   selectedId,
+  snapToGrid,
   onSelect,
   onMove,
   onRotate,
 }: {
   items: PlacedItem[];
   selectedId: string | null;
+  snapToGrid: boolean;
   onSelect: (id: string) => void;
-  onMove: (id: string, dx: number, dy: number) => void;
+  onMove: (id: string, x: number, y: number) => void;
   onRotate: (id: string) => void;
 }) {
-  const canvasRef = useRef<HTMLDivElement>(null);
-
   return (
-    <div ref={canvasRef} className="relative aspect-[4/3] w-[min(72vw,980px)] overflow-hidden rounded-lg border border-white/[0.09] bg-[#3c3833] shadow-[0_35px_100px_rgba(0,0,0,.55)]">
-      <img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1800&q=90" alt="Modern living room" className="absolute inset-0 h-full w-full object-cover" draggable={false} />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-black/5" />
+    <div className="relative aspect-[16/9] w-full max-w-6xl overflow-hidden rounded-xl border border-[#222a38] bg-[#07090e] shadow-[0_0_50px_rgba(0,0,0,0.8)]">
+      
+      {/* 
+        This is a true WebGL 3D Canvas. 
+        It calculates real lighting, perspective, and depth.
+      */}
+      <Canvas shadows>
+        {/* Camera Setup */}
+        <PerspectiveCamera makeDefault position={[0, 1.5, 5]} fov={50} />
+        
+        {/* Environment & Lighting (Creates the photorealistic reflections/lighting) */}
+        <Environment preset="city" environmentIntensity={0.5} />
+        <ambientLight intensity={0.3} />
+        <directionalLight 
+          castShadow 
+          position={[5, 5, 5]} 
+          intensity={1} 
+          shadow-mapSize={[1024, 1024]}
+        />
 
-      {items.map((item) => (
-        <motion.div
-          key={item.id}
-          drag
-          dragMomentum={false}
-          onClick={(e) => { e.stopPropagation(); onSelect(item.id); }}
-          onDragEnd={(_, info) => {
-            const rect = canvasRef.current?.getBoundingClientRect();
-            if (!rect) return;
-            onMove(item.id, (info.offset.x / rect.width) * 100, (info.offset.y / rect.height) * 100);
-          }}
-          className={`absolute cursor-grab active:cursor-grabbing ${selectedId === item.id ? 'z-30' : 'z-20'}`}
-          style={{
-            left: `${item.x}%`,
-            top: `${item.y}%`,
-            width: `${Math.max(9, item.width / 5)}%`,
-            transform: `translate(-50%, -50%) rotate(${item.rotation}deg) scale(${item.scale})`,
-          }}
-        >
-          <div className={`relative overflow-hidden rounded-md ${selectedId === item.id ? 'ring-2 ring-teal-300 ring-offset-2 ring-offset-transparent' : 'hover:ring-1 hover:ring-white/50'}`}>
-            <img src={item.image} alt={item.name} className="aspect-[1.35] w-full object-cover mix-blend-normal" draggable={false} />
-            {selectedId === item.id && <button onClick={(e) => { e.stopPropagation(); onRotate(item.id); }} className="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-[#0d1116] text-white shadow-xl"><RotateCw className="h-3 w-3" /></button>}
-          </div>
-          {selectedId === item.id && <div className="mt-1 text-center text-[8px] font-medium text-teal-100">{item.name} · {item.width}" W</div>}
-        </motion.div>
-      ))}
+        {/* The 3D Floor/Grid */}
+        <Grid 
+          renderOrder={-1} 
+          position={[0, 0, 0]} 
+          infiniteGrid 
+          fadeDistance={10} 
+          fadeStrength={5} 
+          cellSize={snapToGrid ? 0.5 : 0.1} 
+          sectionSize={1} 
+          sectionColor="#334155" 
+          cellColor="#1e293b" 
+        />
+        
+        {/* Invisible floor plane to catch realistic shadows */}
+        <ContactShadows resolution={1024} scale={20} blur={2} opacity={0.5} far={10} color="#000000" />
 
-      <div className="absolute bottom-3 left-3 rounded-md border border-white/10 bg-black/45 px-2 py-1.5 text-[8px] text-white/70 backdrop-blur">
-        Photo perspective · Drag to position
+        {/* 
+          Render Spatial Objects.
+          In a production app, these would load actual .glb / .gltf 3D models.
+          For now, we render real 3D geometry scaled to the product's actual dimensions.
+        */}
+        <Suspense fallback={null}>
+          {items.map((item) => {
+            // Convert inches to meters for 3D scale (approximate)
+            const w = item.width * 0.0254;
+            const h = (item.height || 32) * 0.0254; 
+            const d = (item.depth || item.width) * 0.0254;
+
+            const isSelected = selectedId === item.id;
+
+            return (
+              <TransformControls
+                key={item.id}
+                showX={isSelected}
+                showY={false} // Lock to floor for furniture
+                showZ={isSelected}
+                mode="translate"
+                translationSnap={snapToGrid ? 0.25 : null}
+                position={[(item.x - 50) / 10, h / 2, (item.y - 50) / 10]}
+                onMouseUp={(e) => {
+                  // Capture new position when user drops the object
+                  if (e.target && e.target.object) {
+                    const pos = e.target.object.position;
+                    onMove(item.id, pos.x * 10 + 50, pos.z * 10 + 50);
+                  }
+                }}
+              >
+                <mesh 
+                  castShadow 
+                  receiveShadow 
+                  onClick={(e) => { e.stopPropagation(); onSelect(item.id); }}
+                >
+                  <boxGeometry args={[w, h, d]} />
+                  <meshStandardMaterial 
+                    color={isSelected ? "#06b6d4" : "#475569"} 
+                    roughness={0.2}
+                    metalness={0.1}
+                  />
+                </mesh>
+              </TransformControls>
+            );
+          })}
+        </Suspense>
+      </Canvas>
+
+      {/* Viewport UI Overlay */}
+      <div className="absolute bottom-4 left-4 rounded-lg bg-black/60 backdrop-blur-md px-3 py-1.5 border border-white/10 text-[11px] font-mono text-slate-300 pointer-events-none">
+        WebGL Rendering • PBR Materials Active
       </div>
     </div>
   );
